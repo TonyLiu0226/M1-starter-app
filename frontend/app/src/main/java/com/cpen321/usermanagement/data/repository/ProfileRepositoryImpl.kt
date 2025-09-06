@@ -23,6 +23,7 @@ import javax.inject.Singleton
 class ProfileRepositoryImpl @Inject constructor(
     @ApplicationContext private val context: Context,
     private val userInterface: UserInterface,
+    private val imageInterface: ImageInterface,
     private val hobbyInterface: HobbyInterface,
     private val tokenManager: TokenManager
 ) : ProfileRepository {
@@ -111,6 +112,49 @@ class ProfileRepositoryImpl @Inject constructor(
             Result.failure(e)
         } catch (e: retrofit2.HttpException) {
             Log.e(TAG, "HTTP error while updating hobbies: ${e.code()}", e)
+            Result.failure(e)
+        }
+    }
+
+    override suspend fun uploadProfilePicture(imageUri: Uri): Result<User> {
+        return try {
+            // First, upload the image
+            val file = uriToFile(context, imageUri)
+            val requestFile = file.asRequestBody("image/*".toMediaType())
+            val body = MultipartBody.Part.createFormData("media", file.name, requestFile)
+            
+            val uploadResponse = imageInterface.uploadPicture("", body)
+            if (!uploadResponse.isSuccessful || uploadResponse.body()?.data == null) {
+                val errorBodyString = uploadResponse.errorBody()?.string()
+                val errorMessage = parseErrorMessage(errorBodyString, "Failed to upload image.")
+                Log.e(TAG, "Failed to upload image: $errorMessage")
+                return Result.failure(Exception(errorMessage))
+            }
+            
+            val uploadedImagePath = uploadResponse.body()!!.data!!.image
+            
+            // Then, update the user's profile picture field
+            val updateRequest = UpdateProfileRequest(profilePicture = uploadedImagePath)
+            val updateResponse = userInterface.updateProfile("", updateRequest)
+            if (updateResponse.isSuccessful && updateResponse.body()?.data != null) {
+                Result.success(updateResponse.body()!!.data!!.user)
+            } else {
+                val errorBodyString = updateResponse.errorBody()?.string()
+                val errorMessage = parseErrorMessage(errorBodyString, "Failed to update profile picture.")
+                Log.e(TAG, "Failed to update profile picture: $errorMessage")
+                Result.failure(Exception(errorMessage))
+            }
+        } catch (e: java.net.SocketTimeoutException) {
+            Log.e(TAG, "Network timeout while uploading profile picture", e)
+            Result.failure(e)
+        } catch (e: java.net.UnknownHostException) {
+            Log.e(TAG, "Network connection failed while uploading profile picture", e)
+            Result.failure(e)
+        } catch (e: java.io.IOException) {
+            Log.e(TAG, "IO error while uploading profile picture", e)
+            Result.failure(e)
+        } catch (e: retrofit2.HttpException) {
+            Log.e(TAG, "HTTP error while uploading profile picture: ${e.code()}", e)
             Result.failure(e)
         }
     }
