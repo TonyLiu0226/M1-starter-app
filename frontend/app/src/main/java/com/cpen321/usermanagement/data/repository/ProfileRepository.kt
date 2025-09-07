@@ -9,4 +9,5 @@ interface ProfileRepository {
     suspend fun updateUserHobbies(hobbies: List<String>): Result<User>
     suspend fun uploadProfilePicture(imageUri: Uri): Result<User>
     suspend fun getAvailableHobbies(): Result<List<String>>
+    suspend fun deleteAccount(): Result<Unit>
 }

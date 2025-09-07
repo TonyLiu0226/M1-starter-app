@@ -1,8 +1,14 @@
 package com.cpen321.usermanagement.ui.navigation
 
+import android.util.Log
+import com.cpen321.usermanagement.data.repository.ProfileRepository
+import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.SupervisorJob
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
+import kotlinx.coroutines.launch
 import javax.inject.Inject
 import javax.inject.Singleton
 
@@ -29,7 +35,16 @@ data class NavigationState(
 )
 
 @Singleton
-class NavigationStateManager @Inject constructor() {
+class NavigationStateManager @Inject constructor(
+    private val profileRepository: ProfileRepository
+) {
+
+    companion object {
+        private const val TAG = "NavigationStateManager"
+    }
+
+    // Create a coroutine scope for this singleton
+    private val scope = CoroutineScope(SupervisorJob() + Dispatchers.IO)
 
     private val _navigationEvent = MutableStateFlow<NavigationEvent>(NavigationEvent.NoNavigation)
     val navigationEvent: StateFlow<NavigationEvent> = _navigationEvent.asStateFlow()
@@ -171,12 +186,28 @@ class NavigationStateManager @Inject constructor() {
     fun handleAccountDeletion() {
         _navigationState.value = _navigationState.value.copy(isNavigating = true)
 
-        updateAuthenticationState(
-            isAuthenticated = false,
-            needsProfileCompletion = false,
-            isLoading = false
-        )
-        navigateToAuthWithMessage("Account deleted successfully!")
+        scope.launch {
+            try {
+                val result = profileRepository.deleteAccount()
+                if (result.isSuccess) {
+                    Log.d(TAG, "Account deleted successfully")
+                    updateAuthenticationState(
+                        isAuthenticated = false,
+                        needsProfileCompletion = false,
+                        isLoading = false
+                    )
+                    navigateToAuthWithMessage("Account deleted successfully!")
+                } else {
+                    Log.e(TAG, "Failed to delete account", result.exceptionOrNull())
+                    _navigationState.value = _navigationState.value.copy(isNavigating = false)
+                    // Could add error handling here, for now just reset navigation state
+                }
+            } catch (e: Exception) {
+                Log.e(TAG, "Exception while deleting account", e)
+                _navigationState.value = _navigationState.value.copy(isNavigating = false)
+                // Could add error handling here, for now just reset navigation state
+            }
+        }
     }
 
     /**

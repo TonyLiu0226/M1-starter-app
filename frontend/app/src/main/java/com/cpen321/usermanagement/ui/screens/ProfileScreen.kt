@@ -98,7 +98,6 @@ fun ProfileScreen(
             },
             onDeleteDialogConfirm = {
                 dialogState = dialogState.copy(showDeleteDialog = false)
-                authViewModel.handleAccountDeletion()
                 actions.onAccountDeleted()
             },
             onSuccessMessageShown = profileViewModel::clearSuccessMessage,

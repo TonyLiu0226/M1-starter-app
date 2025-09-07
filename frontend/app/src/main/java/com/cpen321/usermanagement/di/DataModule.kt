@@ -2,6 +2,7 @@ package com.cpen321.usermanagement.di
 
 import android.content.Context
 import com.cpen321.usermanagement.data.local.preferences.TokenManager
+import com.cpen321.usermanagement.data.repository.ProfileRepository
 import com.cpen321.usermanagement.ui.navigation.NavigationStateManager
 import dagger.Module
 import dagger.Provides
@@ -24,7 +25,9 @@ object DataModule {
 
     @Provides
     @Singleton
-    fun provideNavigationStateManager(): NavigationStateManager {
-        return NavigationStateManager()
+    fun provideNavigationStateManager(
+        profileRepository: ProfileRepository
+    ): NavigationStateManager {
+        return NavigationStateManager(profileRepository)
     }
 }

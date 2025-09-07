@@ -169,16 +169,7 @@ class AuthViewModel @Inject constructor(
         }
     }
 
-    fun handleAccountDeletion() {
-        viewModelScope.launch {
-            authRepository.clearToken()
-            _uiState.value = AuthUiState(
-                isAuthenticated = false,
-                isCheckingAuth = false,
-                shouldSkipAuthCheck = true // Skip auth check after manual sign out
-            )
-        }
-    }
+
 
     fun clearError() {
         _uiState.value = _uiState.value.copy(errorMessage = null)
