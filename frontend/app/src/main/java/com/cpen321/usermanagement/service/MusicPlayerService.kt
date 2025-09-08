@@ -47,40 +47,45 @@ class MusicPlayerService @Inject constructor(
                 }
                 
                 override fun onMediaItemTransition(mediaItem: MediaItem?, reason: Int) {
+                    // Only update state, don't auto-advance
                     updatePlayerState()
                 }
                 
                 override fun onPlaybackStateChanged(playbackState: Int) {
                     when (playbackState) {
-                        Player.STATE_ENDED -> {
-                            // Auto play next song
-                            nextTrack()
-                        }
                         Player.STATE_READY -> {
                             updatePlayerState(
                                 duration = exoPlayer?.duration ?: 0L
                             )
                         }
+                        // Remove STATE_ENDED auto-progression
                     }
                 }
             })
-            repeatMode = Player.REPEAT_MODE_ALL
+            // Disable automatic progression
+            repeatMode = Player.REPEAT_MODE_OFF
         }
     }
     
     fun setPlaylist(songs: List<Song>) {
         currentPlaylist = songs
         currentIndex = 0
-        val mediaItems = songs.map { song ->
-            MediaItem.fromUri(getRawResourceUri(song.resourceId))
-        }
-        exoPlayer?.setMediaItems(mediaItems)
-        exoPlayer?.prepare()
+        // Load only the first song to prevent auto-advancement
+        loadCurrentTrack()
         updatePlayerState(
             currentSong = songs.firstOrNull(),
             playlist = songs,
             currentIndex = 0
         )
+    }
+    
+    private fun loadCurrentTrack() {
+        if (currentPlaylist.isNotEmpty() && currentIndex < currentPlaylist.size) {
+            val currentSong = currentPlaylist[currentIndex]
+            val mediaItem = MediaItem.fromUri(getRawResourceUri(currentSong.resourceId))
+            exoPlayer?.setMediaItem(mediaItem)
+            exoPlayer?.prepare()
+        }
     }
     
     fun play() {
@@ -102,7 +107,10 @@ class MusicPlayerService @Inject constructor(
     fun nextTrack() {
         if (currentPlaylist.isNotEmpty()) {
             currentIndex = (currentIndex + 1) % currentPlaylist.size
-            exoPlayer?.seekToNext()
+            // Load the new track instead of seeking
+            loadCurrentTrack()
+            // Auto-play the next track
+            play()
             updatePlayerState(
                 currentSong = currentPlaylist[currentIndex],
                 currentIndex = currentIndex
@@ -122,6 +130,18 @@ class MusicPlayerService @Inject constructor(
     
     fun getCurrentPosition(): Long {
         return exoPlayer?.currentPosition ?: 0L
+    }
+    
+    fun checkAndHandleTrackCompletion() {
+        val currentPos = getCurrentPosition()
+        val duration = exoPlayer?.duration ?: 0L
+        
+        // Check if we're at the very end (within 50ms tolerance)
+        // Also check if player is not already transitioning
+        if (duration > 0 && currentPos >= duration - 50 && exoPlayer?.isPlaying == true) {
+            // Track is complete, advance to next
+            nextTrack()
+        }
     }
     
     fun release() {

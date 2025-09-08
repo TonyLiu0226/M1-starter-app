@@ -79,8 +79,11 @@ class MusicPlayerViewModel @Inject constructor(
                             currentPosition = currentPosition
                         )
                     )
+                    
+                    // Check if track should advance to next
+                    musicPlayerService.checkAndHandleTrackCompletion()
                 }
-                delay(1000) // Update every second
+                delay(100) // Update every 100ms for more precise end detection
             }
         }
     }
