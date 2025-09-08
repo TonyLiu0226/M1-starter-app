@@ -199,4 +199,11 @@ class ProfileViewModel @Inject constructor(
             }
         }
     }
+
+    /**
+     * Clear all cached profile data (used when account is deleted)
+     */
+    fun clearUserData() {
+        _uiState.value = ProfileUiState()
+    }
 }

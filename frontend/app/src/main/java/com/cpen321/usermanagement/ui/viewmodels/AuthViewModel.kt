@@ -182,4 +182,15 @@ class AuthViewModel @Inject constructor(
     fun clearSuccessMessage() {
         _uiState.value = _uiState.value.copy(successMessage = null)
     }
+
+    /**
+     * Clear all cached user data (used when account is deleted)
+     */
+    fun clearUserData() {
+        _uiState.value = AuthUiState(
+            isAuthenticated = false,
+            isCheckingAuth = false,
+            shouldSkipAuthCheck = true
+        )
+    }
 }

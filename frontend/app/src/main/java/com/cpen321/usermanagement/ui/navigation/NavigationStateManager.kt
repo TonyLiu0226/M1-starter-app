@@ -1,6 +1,7 @@
 package com.cpen321.usermanagement.ui.navigation
 
 import android.util.Log
+import com.cpen321.usermanagement.data.repository.AuthRepository
 import com.cpen321.usermanagement.data.repository.ProfileRepository
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
@@ -36,6 +37,7 @@ data class NavigationState(
 
 @Singleton
 class NavigationStateManager @Inject constructor(
+    private val authRepository: AuthRepository,
     private val profileRepository: ProfileRepository
 ) {
 
@@ -178,6 +180,30 @@ class NavigationStateManager @Inject constructor(
      */
     fun navigateBack() {
         _navigationEvent.value = NavigationEvent.NavigateBack
+    }
+
+    /**
+     * Handle logout
+     */
+    fun handleLogout() {
+        _navigationState.value = _navigationState.value.copy(isNavigating = true)
+
+        scope.launch {
+            try {
+                authRepository.clearToken()
+                Log.d(TAG, "User logged out successfully")
+                updateAuthenticationState(
+                    isAuthenticated = false,
+                    needsProfileCompletion = false,
+                    isLoading = false
+                )
+                navigateToAuthWithMessage("Logged out successfully!")
+            } catch (e: Exception) {
+                Log.e(TAG, "Exception while logging out", e)
+                _navigationState.value = _navigationState.value.copy(isNavigating = false)
+                // Could add error handling here, for now just reset navigation state
+            }
+        }
     }
 
     /**

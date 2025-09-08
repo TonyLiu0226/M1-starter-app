@@ -190,7 +190,20 @@ private fun AppNavHost(
                     onBackClick = { navigationStateManager.navigateBack() },
                     onManageProfileClick = { navigationStateManager.navigateToManageProfile() },
                     onManageHobbiesClick = { navigationStateManager.navigateToManageHobbies() },
-                    onAccountDeleted = { navigationStateManager.handleAccountDeletion() }
+                    onLogout = { 
+                        // Clear cached user data from ViewModels
+                        authViewModel.clearUserData()
+                        profileViewModel.clearUserData()
+                        // Handle logout
+                        navigationStateManager.handleLogout() 
+                    },
+                    onAccountDeleted = { 
+                        // Clear cached user data from ViewModels
+                        authViewModel.clearUserData()
+                        profileViewModel.clearUserData()
+                        // Handle account deletion
+                        navigationStateManager.handleAccountDeletion() 
+                    }
                 )
             )
         }
