@@ -7,6 +7,7 @@ export type ArtistRequest = {
 export type ArtistResponse = {
   id: string;
   name: string;
+  genres: string[];
 };
 
 export type MusicRequest = {

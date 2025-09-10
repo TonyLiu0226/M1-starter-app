@@ -2,7 +2,7 @@ import { NextFunction, Request, Response } from 'express';
 
 import logger from '../utils/logger.util';
 import { MediaService } from '../services/media.service';
-import { ArtistRequest, ArtistResponse } from '../types/music.types.js';
+import { ArtistRequest, ArtistResponse, MusicRequest, MusicResponse } from '../types/music.types.js';
 import { sanitizeInput } from '../utils/sanitizeInput.util';
 import axios from 'axios';
 
@@ -53,7 +53,8 @@ export class MusicController {
         const firstArtist = apiResponse.data.artists.items[0];
         (res as Response).json({
           id: firstArtist.id,
-          name: firstArtist.name
+          name: firstArtist.name,
+          genres: firstArtist.genres
         });
         //404 error for no artists found, or status code other than 200 in initial response
       } else {
@@ -68,4 +69,40 @@ export class MusicController {
       });
     }
   }
+
+  async generateTrack(
+    req: Request<unknown, unknown, MusicRequest>,
+    res: Response<MusicResponse>,
+    next: NextFunction
+  ) {
+    try {
+      const serverList = await axios.get('https://api.audius.co');
+      if (serverList.status === 200 && serverList.data.length > 0) {
+        const server =  serverList.data[0]
+        const trackURL = `${server}/v1/tracks/search?query=${req.body.genre}?only_downloadable=true`
+        const trackResponse = await axios.get(trackURL, {
+          headers: {
+            'Content-Type': 'application/json',
+          }
+        })
+        const randomTrack = trackResponse.data[Math.floor(Math.random() * req.body.count)].id
+        const downloadURL = `${server}/v1/tracks/${randomTrack}/download`
+        const downloadResponse = await axios.get(downloadURL, {
+          headers: {
+            'Content-Type': 'application/json',
+          }
+        })
+        
+      }
+      else {
+        return (res as Response).status(404).json({
+          message: 'No servers found',
+        });
+      }
+    }
+    catch(error) {
+
+    }
+}
+
 }
