@@ -4,11 +4,14 @@ import { authenticateToken } from './middleware/auth.middleware';
 import authRoutes from './routes/auth.routes';
 import hobbiesRoutes from './routes/hobbies.routes';
 import mediaRoutes from './routes/media.routes';
+import musicRoutes from './routes/music.routes';
 import usersRoutes from './routes/user.routes';
 
 const router = Router();
 
 router.use('/auth', authRoutes);
+
+router.use('/music', musicRoutes);
 
 router.use('/hobbies', authenticateToken, hobbiesRoutes);
 
