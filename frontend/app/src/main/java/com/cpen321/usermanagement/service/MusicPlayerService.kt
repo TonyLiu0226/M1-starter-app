@@ -79,10 +79,41 @@ class MusicPlayerService @Inject constructor(
         )
     }
     
+    fun playDownloadedTrack(url: String, title: String = "Downloaded Track") {
+        // Create a new song from the downloaded URL
+        val downloadedSong = Song(
+            id = -1, // Use -1 for downloaded tracks
+            title = title,
+            url = url
+        )
+        
+        // Pause current playback
+        pause()
+        
+        // Insert the downloaded track at the beginning of the playlist
+        val newPlaylist = listOf(downloadedSong) + currentPlaylist
+        currentPlaylist = newPlaylist
+        currentIndex = 0
+        
+        // Load and play the downloaded track
+        loadCurrentTrack()
+        play()
+        
+        updatePlayerState(
+            currentSong = downloadedSong,
+            playlist = newPlaylist,
+            currentIndex = 0
+        )
+    }
+    
     private fun loadCurrentTrack() {
         if (currentPlaylist.isNotEmpty() && currentIndex < currentPlaylist.size) {
             val currentSong = currentPlaylist[currentIndex]
-            val mediaItem = MediaItem.fromUri(getRawResourceUri(currentSong.resourceId))
+            val mediaItem = when {
+                currentSong.url != null -> MediaItem.fromUri(currentSong.url)
+                currentSong.resourceId != null -> MediaItem.fromUri(getRawResourceUri(currentSong.resourceId))
+                else -> throw IllegalStateException("Song has neither URL nor resourceId")
+            }
             exoPlayer?.setMediaItem(mediaItem)
             exoPlayer?.prepare()
         }

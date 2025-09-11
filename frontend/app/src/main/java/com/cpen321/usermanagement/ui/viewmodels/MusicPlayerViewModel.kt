@@ -69,6 +69,11 @@ class MusicPlayerViewModel @Inject constructor(
         musicPlayerService.setPlaylist(shuffledSongs)
     }
     
+    fun playDownloadedTrack(url: String, artistName: String = "Unknown Artist") {
+        val title = "Similar to $artistName"
+        musicPlayerService.playDownloadedTrack(url, title)
+    }
+    
     private fun startProgressUpdater() {
         viewModelScope.launch {
             while (isActive) {

@@ -4,6 +4,7 @@ import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.cpen321.usermanagement.data.remote.dto.ArtistSearchResponse
 import com.cpen321.usermanagement.data.repository.MusicApiRepository
+import com.cpen321.usermanagement.service.MusicPlayerService
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
@@ -23,7 +24,8 @@ data class MainUiState(
 
 @HiltViewModel
 class MainViewModel @Inject constructor(
-    private val musicApiRepository: MusicApiRepository
+    private val musicApiRepository: MusicApiRepository,
+    private val musicPlayerService: MusicPlayerService
 ) : ViewModel() {
 
     private val _uiState = MutableStateFlow(MainUiState())
@@ -81,6 +83,10 @@ class MainViewModel @Inject constructor(
                                 downloadUrl = downloadUrl,
                                 isLoadingMusic = false
                             )
+                            
+                            // Immediately play the downloaded track
+                            val artistName = _uiState.value.foundArtist?.name ?: "Unknown Artist"
+                            musicPlayerService.playDownloadedTrack(downloadUrl, "Similar to $artistName")
                         } else {
                             _uiState.value = _uiState.value.copy(
                                 musicErrorMessage = "No tracks found for this artist's style",
