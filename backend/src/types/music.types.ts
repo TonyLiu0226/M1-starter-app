@@ -12,8 +12,9 @@ export type ArtistResponse = {
 
 export type MusicRequest = {
     genre: string;
+    count: number;
 }
 
 export type MusicResponse = {
-    url: string;
+    url: any;
 }
