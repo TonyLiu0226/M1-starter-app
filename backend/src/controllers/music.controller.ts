@@ -51,11 +51,22 @@ export class MusicController {
       
       if (apiResponse.status === 200 && apiResponse.data.artists?.items?.length > 0) {
         const firstArtist = apiResponse.data.artists.items[0]; //get first artist from response, typically is the most relevant one
-        (res as Response).json({
-          id: firstArtist.id,
-          name: firstArtist.name,
-          genres: firstArtist.genres
-        });
+        console.log(firstArtist);
+        console.log(firstArtist.genres);
+        
+        if (!firstArtist.genres) {
+          (res as Response).json({
+            id: firstArtist.id,
+            name: firstArtist.name,
+            genres: firstArtist.name //in this case, just use the name as the search parameter in the next step
+          });
+        } else {
+          (res as Response).json({
+            id: firstArtist.id,
+            name: firstArtist.name,
+            genres: firstArtist.genres
+          });
+        }
         //404 error for no artists found, or status code other than 200 in initial response
       } else {
         return (res as Response).status(404).json({
