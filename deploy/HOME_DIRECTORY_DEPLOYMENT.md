@@ -31,7 +31,10 @@ mkdir ~/myapp
 cd ~/myapp
 
 # Clone your repository
-git clone https://github.com/yourusername/yourrepo.git .
+git clone https://github.com/yourusername/M1-starter-app.git
+
+# Navigate to project directory
+cd M1-starter-app
 
 # Configure environment variables
 cp deploy/env.example deploy/.env
@@ -66,7 +69,7 @@ Your backend will be running at:
 
 ```bash
 # Navigate to your app
-cd ~/myapp/deploy
+cd ~/myapp/M1-starter-app/deploy
 
 # Check status
 docker-compose ps
@@ -79,7 +82,7 @@ docker-compose logs -f mongodb
 docker-compose restart
 
 # Update application
-cd ~/myapp
+cd ~/myapp/M1-starter-app
 git pull
 cd deploy
 ./deploy.sh
@@ -91,17 +94,18 @@ docker-compose down
 ## 📁 Directory Structure
 ```
 ~/myapp/
-├── backend/
-│   ├── src/
-│   ├── uploads/          # File uploads stored here
-│   ├── Dockerfile        # Moved here for easier builds
-│   └── package.json
-├── deploy/
-│   ├── docker-compose.yml
-│   ├── .env             # Your production config
-│   ├── deploy.sh
-│   └── mongo-init.js
-└── frontend/
+└── M1-starter-app/
+    ├── backend/
+    │   ├── src/
+    │   ├── uploads/          # File uploads stored here
+    │   ├── Dockerfile        # Moved here for easier builds
+    │   └── package.json
+    ├── deploy/
+    │   ├── docker-compose.yml
+    │   ├── .env             # Your production config
+    │   ├── deploy.sh
+    │   └── mongo-init.js
+    └── frontend/
 ```
 
 ## 🌐 Optional: Add Domain & SSL
@@ -145,7 +149,7 @@ docker-compose logs
 
 **Permission issues with uploads?**
 ```bash
-chmod -R 755 ~/myapp/backend/uploads
+chmod -R 755 ~/myapp/M1-starter-app/backend/uploads
 ```
 
 **Can't access from outside?**

@@ -12,8 +12,8 @@ YELLOW='\033[1;33m'
 NC='\033[0m' # No Color
 
 # Configuration
-DEPLOY_DIR="$HOME/myapp"
-BACKUP_DIR="$HOME/myapp/backups"
+DEPLOY_DIR="$HOME/myapp/M1-starter-app"
+BACKUP_DIR="$HOME/myapp/M1-starter-app/backups"
 COMPOSE_FILE="docker-compose.yml"
 
 echo -e "${GREEN}🚀 Starting deployment process...${NC}"
