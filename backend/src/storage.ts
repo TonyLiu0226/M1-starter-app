@@ -5,8 +5,14 @@ import path from 'path';
 
 import { IMAGES_DIR } from './constants/hobbies';
 
-if (!fs.existsSync(IMAGES_DIR)) {
-  fs.mkdirSync(IMAGES_DIR, { recursive: true });
+// Create images directory if it doesn't exist
+try {
+  if (!fs.existsSync(IMAGES_DIR)) {
+    fs.mkdirSync(IMAGES_DIR, { recursive: true });
+  }
+} catch (error) {
+  console.error('Warning: Could not create uploads directory:', error.message);
+  console.log('Make sure the uploads/images directory exists and has proper permissions');
 }
 
 const storage = multer.diskStorage({

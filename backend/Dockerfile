@@ -19,11 +19,11 @@ COPY src/ ./src/
 # Build TypeScript to JavaScript
 RUN npm run build
 
+# Create uploads directory structure with proper permissions BEFORE switching users
+RUN mkdir -p uploads/images && chown -R node:node uploads && chmod -R 755 uploads
+
 # Remove dev dependencies after building to reduce image size
 RUN npm prune --production
-
-# Create uploads directory structure with proper permissions
-RUN mkdir -p uploads/images && chown -R node:node uploads
 
 # Create non-root user for security
 USER node
