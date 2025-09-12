@@ -7,14 +7,11 @@ WORKDIR /app
 # Copy package files
 COPY package*.json ./
 
-# Install dependencies
-RUN npm ci --only=production
+# Install ALL dependencies (including dev dependencies for building)
+RUN npm ci
 
 # Copy TypeScript configuration
 COPY tsconfig.json ./
-
-# Install TypeScript globally for building
-RUN npm install -g typescript
 
 # Copy source code
 COPY src/ ./src/
@@ -22,7 +19,7 @@ COPY src/ ./src/
 # Build TypeScript to JavaScript
 RUN npm run build
 
-# Remove TypeScript and dev dependencies to reduce image size
+# Remove dev dependencies after building to reduce image size
 RUN npm prune --production
 
 # Create uploads directory with proper permissions
