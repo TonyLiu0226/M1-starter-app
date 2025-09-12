@@ -11,7 +11,7 @@ try {
     fs.mkdirSync(IMAGES_DIR, { recursive: true });
   }
 } catch (error) {
-  console.error('Warning: Could not create uploads directory:', error.message);
+  console.error('Warning: Could not create uploads directory:', error instanceof Error ? error.message : String(error));
   console.log('Make sure the uploads/images directory exists and has proper permissions');
 }
 
