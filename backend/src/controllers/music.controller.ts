@@ -58,7 +58,7 @@ export class MusicController {
           (res as Response).json({
             id: firstArtist.id,
             name: firstArtist.name,
-            genres: firstArtist.name //in this case, just use the name as the search parameter in the next step
+            genres: [firstArtist.name] //in this case, just use the name as the search parameter in the next step
           });
         } else {
           (res as Response).json({

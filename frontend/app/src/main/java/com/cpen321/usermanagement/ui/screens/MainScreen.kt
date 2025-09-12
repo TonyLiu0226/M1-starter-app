@@ -304,7 +304,7 @@ private fun MainBody(
                             Spacer(modifier = Modifier.height(4.dp))
                             
                             Text(
-                                text = "Track Found!",
+                                text = "Track Found! Playing on music player...",
                                 style = MaterialTheme.typography.titleSmall,
                                 fontWeight = FontWeight.Bold
                             )

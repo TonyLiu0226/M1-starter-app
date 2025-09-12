@@ -74,24 +74,29 @@ class MainViewModel @Inject constructor(
 
                     // Step 2: Get track from artist's genres
                     if (artist.genres.isNotEmpty()) {
-                        val genre = artist.genres.first() // Use first genre
-                        val trackResponse = musicApiRepository.downloadTrack(genre, 5)
-                        
-                        if (trackResponse.isSuccessful && trackResponse.body() != null) {
-                            val downloadUrl = trackResponse.body()!!.url
-                            _uiState.value = _uiState.value.copy(
-                                downloadUrl = downloadUrl,
-                                isLoadingMusic = false
-                            )
+                        var found = false;
+                        for (genre in artist.genres) {
+                            val trackResponse = musicApiRepository.downloadTrack(genre, 5)
                             
-                            // Immediately play the downloaded track
-                            val artistName = _uiState.value.foundArtist?.name ?: "Unknown Artist"
-                            musicPlayerService.playDownloadedTrack(downloadUrl, "Similar to $artistName")
-                        } else {
+                            if (trackResponse.isSuccessful && trackResponse.body() != null) {
+                                val downloadUrl = trackResponse.body()!!.url
+                                _uiState.value = _uiState.value.copy(
+                                    downloadUrl = downloadUrl,
+                                    isLoadingMusic = false
+                                )
+                                
+                                // Immediately play the downloaded track
+                                val artistName = _uiState.value.foundArtist?.name ?: "Unknown Artist"
+                                musicPlayerService.playDownloadedTrack(downloadUrl, "Similar to $artistName")
+                                found = true;
+                                break;
+                            }
+                        }
+                        if (!found) {
                             _uiState.value = _uiState.value.copy(
-                                musicErrorMessage = "No tracks found for this artist's style",
-                                isLoadingMusic = false
-                            )
+                            musicErrorMessage = "No tracks found for this artist's style",
+                            isLoadingMusic = false
+                        )
                         }
                     } else {
                         _uiState.value = _uiState.value.copy(
