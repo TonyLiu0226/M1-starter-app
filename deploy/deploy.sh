@@ -19,10 +19,6 @@ COMPOSE_FILE="docker-compose.yml"
 echo -e "${GREEN}🚀 Starting deployment process...${NC}"
 
 # Check if running as root (not recommended)
-if [ "$EUID" -eq 0 ]; then
-    echo -e "${RED}❌ Please don't run this script as root${NC}"
-    exit 1
-fi
 
 # Check if .env file exists
 if [ ! -f ".env" ]; then
