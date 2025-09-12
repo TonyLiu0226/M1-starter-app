@@ -22,8 +22,8 @@ RUN npm run build
 # Remove dev dependencies after building to reduce image size
 RUN npm prune --production
 
-# Create uploads directory with proper permissions
-RUN mkdir -p uploads && chown -R node:node uploads
+# Create uploads directory structure with proper permissions
+RUN mkdir -p uploads/images && chown -R node:node uploads
 
 # Create non-root user for security
 USER node
