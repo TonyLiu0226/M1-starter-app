@@ -125,4 +125,11 @@ class MainViewModel @Inject constructor(
             musicErrorMessage = null
         )
     }
+    
+    /**
+     * Reset the music discovery state completely (used when user logs in)
+     */
+    fun resetMusicDiscoveryState() {
+        _uiState.value = MainUiState()
+    }
 }

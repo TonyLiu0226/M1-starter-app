@@ -96,8 +96,9 @@ private fun handleNavigationEvent(
         }
 
         is NavigationEvent.NavigateToMain -> {
-            // Reset music player state when user logs in
+            // Reset music player and discovery state when user logs in
             musicPlayerViewModel.resetPlayerState()
+            mainViewModel.resetMusicDiscoveryState()
             navController.navigate(NavRoutes.MAIN) {
                 popUpTo(0) { inclusive = true }
             }
@@ -105,8 +106,9 @@ private fun handleNavigationEvent(
         }
 
         is NavigationEvent.NavigateToMainWithMessage -> {
-            // Reset music player state when user logs in
+            // Reset music player and discovery state when user logs in
             musicPlayerViewModel.resetPlayerState()
+            mainViewModel.resetMusicDiscoveryState()
             mainViewModel.setSuccessMessage(navigationEvent.message)
             navController.navigate(NavRoutes.MAIN) {
                 popUpTo(0) { inclusive = true }
