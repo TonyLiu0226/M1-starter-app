@@ -28,6 +28,8 @@ services:
       - MONGODB_URI=mongodb://appuser:${MONGO_APP_PASSWORD}@mongodb:27017/${DB_NAME}
       - JWT_SECRET=${JWT_SECRET}
       - GOOGLE_CLIENT_ID=${GOOGLE_CLIENT_ID}
+      - SPOTIFY_CLIENT_ID=${SPOTIFY_CLIENT_ID}
+      - SPOTIFY_CLIENT_SECRET=${SPOTIFY_CLIENT_SECRET}
     volumes:
       - ../backend/uploads:/app/uploads
     depends_on:
