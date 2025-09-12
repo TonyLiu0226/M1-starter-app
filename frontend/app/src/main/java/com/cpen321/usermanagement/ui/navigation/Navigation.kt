@@ -22,6 +22,7 @@ import com.cpen321.usermanagement.ui.screens.ProfileCompletionScreen
 import com.cpen321.usermanagement.ui.screens.ProfileScreen
 import com.cpen321.usermanagement.ui.viewmodels.AuthViewModel
 import com.cpen321.usermanagement.ui.viewmodels.MainViewModel
+import com.cpen321.usermanagement.ui.viewmodels.MusicPlayerViewModel
 import com.cpen321.usermanagement.ui.viewmodels.NavigationViewModel
 import com.cpen321.usermanagement.ui.viewmodels.ProfileViewModel
 
@@ -47,6 +48,7 @@ fun AppNavigation(
     val authViewModel: AuthViewModel = hiltViewModel()
     val profileViewModel: ProfileViewModel = hiltViewModel()
     val mainViewModel: MainViewModel = hiltViewModel()
+    val musicPlayerViewModel: MusicPlayerViewModel = hiltViewModel()
 
     // Handle navigation events from NavigationStateManager
     LaunchedEffect(navigationEvent) {
@@ -55,7 +57,8 @@ fun AppNavigation(
             navController,
             navigationStateManager,
             authViewModel,
-            mainViewModel
+            mainViewModel,
+            musicPlayerViewModel
         )
     }
 
@@ -73,7 +76,8 @@ private fun handleNavigationEvent(
     navController: NavHostController,
     navigationStateManager: NavigationStateManager,
     authViewModel: AuthViewModel,
-    mainViewModel: MainViewModel
+    mainViewModel: MainViewModel,
+    musicPlayerViewModel: MusicPlayerViewModel
 ) {
     when (navigationEvent) {
         is NavigationEvent.NavigateToAuth -> {
@@ -92,6 +96,8 @@ private fun handleNavigationEvent(
         }
 
         is NavigationEvent.NavigateToMain -> {
+            // Reset music player state when user logs in
+            musicPlayerViewModel.resetPlayerState()
             navController.navigate(NavRoutes.MAIN) {
                 popUpTo(0) { inclusive = true }
             }
@@ -99,6 +105,8 @@ private fun handleNavigationEvent(
         }
 
         is NavigationEvent.NavigateToMainWithMessage -> {
+            // Reset music player state when user logs in
+            musicPlayerViewModel.resetPlayerState()
             mainViewModel.setSuccessMessage(navigationEvent.message)
             navController.navigate(NavRoutes.MAIN) {
                 popUpTo(0) { inclusive = true }

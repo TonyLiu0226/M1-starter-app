@@ -74,6 +74,29 @@ class MusicPlayerViewModel @Inject constructor(
         musicPlayerService.playDownloadedTrack(url, title)
     }
     
+    /**
+     * Reset the player state and reinitialize playlist (used when user logs in)
+     */
+    fun resetPlayerState() {
+        // Reset the music player service completely
+        musicPlayerService.resetService()
+        
+        // Reset UI state to initial loading state
+        _uiState.value = MusicPlayerUiState()
+        
+        // Reinitialize the playlist with fresh songs
+        initializePlaylist()
+        
+        // Force refresh the UI state
+        viewModelScope.launch {
+            val currentPlayerState = musicPlayerService.playerState.value
+            _uiState.value = _uiState.value.copy(
+                playerState = currentPlayerState,
+                isLoading = false
+            )
+        }
+    }
+    
     private fun startProgressUpdater() {
         viewModelScope.launch {
             while (isActive) {

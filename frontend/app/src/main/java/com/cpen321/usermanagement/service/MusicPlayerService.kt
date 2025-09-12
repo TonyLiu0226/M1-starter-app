@@ -116,6 +116,8 @@ class MusicPlayerService @Inject constructor(
             }
             exoPlayer?.setMediaItem(mediaItem)
             exoPlayer?.prepare()
+            // Ensure we're at the beginning of the track
+            exoPlayer?.seekTo(0)
         }
     }
     
@@ -173,6 +175,21 @@ class MusicPlayerService @Inject constructor(
             // Track is complete, advance to next
             nextTrack()
         }
+    }
+    
+    fun resetService() {
+        // Release the old player and create a new one
+        exoPlayer?.release()
+        
+        // Reset internal state
+        currentPlaylist = emptyList()
+        currentIndex = 0
+        
+        // Reset player state flow
+        _playerState.value = PlayerState()
+        
+        // Reinitialize the player
+        initializePlayer()
     }
     
     fun release() {
