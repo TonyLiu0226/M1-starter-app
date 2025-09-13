@@ -125,20 +125,33 @@ export class MusicController {
             }
             order = order.sort(() => Math.random() - 0.5);
           
+            let tracksSkippedCount = 0;
+            const maxDurationSeconds = 900;
+            
             //try every track in order
             for (let j = 0; j < order.length; j++) {
                 const randomTrack = tracks[order[j]];
                 if (!randomTrack || !randomTrack.id) {
-                  console.log(`Invalid track data on server ${i + 1}, trying next server...`);
+                  console.log(`Invalid track data on server ${i + 1}, trying next track...`);
                   continue;
                 }
+                
                 //sanity check if track is downloadable first. If not downloadable, try another track
                 const downloadableResponse = await axios.get(`${server}/v1/tracks/${randomTrack.id}`, {
                   headers: {
                     'Content-Type': 'application/json',
                   }
                 });
-                if (downloadableResponse.data.data.is_downloadable) {
+                
+                const trackData = downloadableResponse.data.data;
+                if (trackData.is_downloadable) {
+                  // Check if track duration is reasonable (less than 15 minutes = 900 seconds)
+                  if (trackData.duration && trackData.duration > maxDurationSeconds) {
+                    console.log(`Track ${randomTrack.id} is ${trackData.duration}s (${Math.round(trackData.duration/60)}min), skipping - too long`);
+                    tracksSkippedCount++;
+                    continue; // Skip this track and try the next one
+                  }
+                  
                   try {
                     const downloadURL = await axios.get(`${server}/v1/tracks/${randomTrack.id}/download`, {
                       headers: {
@@ -146,6 +159,8 @@ export class MusicController {
                       }
                     });
                     if (downloadURL.status === 200) {
+                      const durationInfo = trackData.duration ? ` (${Math.round(trackData.duration/60)}min)` : '';
+                      console.log(`Returning track ${randomTrack.id}${durationInfo} from server ${i + 1}`);
                       // Return just the URL string, not the axios response object
                       const actualDownloadURL = `${server}/v1/tracks/${randomTrack.id}/download`;
                       return res.status(200).json({
@@ -157,6 +172,10 @@ export class MusicController {
                     continue;
                   }  
                 }
+              }
+              
+              if (tracksSkippedCount > 0) {
+                console.log(`Skipped ${tracksSkippedCount} tracks on server ${i + 1} due to duration > ${maxDurationSeconds/60} minutes`);
               }
             }
         } catch (serverError) {

@@ -10,6 +10,8 @@ import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.launch
+import kotlinx.coroutines.withTimeout
+import kotlinx.coroutines.TimeoutCancellationException
 import javax.inject.Inject
 
 data class MainUiState(
@@ -65,54 +67,86 @@ class MainViewModel @Inject constructor(
             )
 
             try {
-                // Step 1: Search for artist
-                val artistResponse = musicApiRepository.searchArtists(artistName)
-                
-                if (artistResponse.isSuccessful && artistResponse.body() != null) {
-                    val artist = artistResponse.body()!!
-                    _uiState.value = _uiState.value.copy(foundArtist = artist)
+                // Add overall timeout of 45 seconds for the entire operation
+                withTimeout(45000) {
+                    // Step 1: Search for artist
+                    val artistResponse = musicApiRepository.searchArtists(artistName)
+                    
+                    if (artistResponse.isSuccessful && artistResponse.body() != null) {
+                        val artist = artistResponse.body()!!
+                        _uiState.value = _uiState.value.copy(foundArtist = artist)
 
-                    // Step 2: Get track from artist's genres
-                    if (artist.genres.isNotEmpty()) {
-                        var found = false;
-                        for (genre in artist.genres) {
-                            val trackResponse = musicApiRepository.downloadTrack(genre, 5)
+                        // Step 2: Get track from artist's genres
+                        if (artist.genres.isNotEmpty()) {
+                            var found = false
+                            var lastError: String? = null
                             
-                            if (trackResponse.isSuccessful && trackResponse.body() != null) {
-                                val downloadUrl = trackResponse.body()!!.url
+                            for (genre in artist.genres) {
+                                try {
+                                    val trackResponse = musicApiRepository.downloadTrack(genre, 5)
+                                    
+                                    if (trackResponse.isSuccessful && trackResponse.body() != null) {
+                                        val downloadUrl = trackResponse.body()!!.url
+                                        _uiState.value = _uiState.value.copy(
+                                            downloadUrl = downloadUrl,
+                                            isLoadingMusic = false
+                                        )
+                                        
+                                        // Immediately play the downloaded track
+                                        val artistName = _uiState.value.foundArtist?.name ?: "Unknown Artist"
+                                        musicPlayerService.playDownloadedTrack(downloadUrl, "Similar to $artistName")
+                                        found = true
+                                        break
+                                    } else {
+                                        lastError = "Failed to download track for $genre (HTTP ${trackResponse.code()})"
+                                    }
+                                } catch (e: Exception) {
+                                    lastError = when {
+                                        e.message?.contains("timeout", ignoreCase = true) == true -> 
+                                            "Request timed out while downloading $genre tracks"
+                                        e.message?.contains("connect", ignoreCase = true) == true -> 
+                                            "Unable to connect to music service"
+                                        else -> "Network error for $genre: ${e.message}"
+                                    }
+                                    // Continue to next genre instead of failing completely
+                                    continue
+                                }
+                            }
+                            
+                            if (!found) {
                                 _uiState.value = _uiState.value.copy(
-                                    downloadUrl = downloadUrl,
+                                    musicErrorMessage = lastError ?: "No tracks found for this artist's style",
                                     isLoadingMusic = false
                                 )
-                                
-                                // Immediately play the downloaded track
-                                val artistName = _uiState.value.foundArtist?.name ?: "Unknown Artist"
-                                musicPlayerService.playDownloadedTrack(downloadUrl, "Similar to $artistName")
-                                found = true;
-                                break;
                             }
-                        }
-                        if (!found) {
+                        } else {
                             _uiState.value = _uiState.value.copy(
-                            musicErrorMessage = "No tracks found for this artist's style",
-                            isLoadingMusic = false
-                        )
+                                musicErrorMessage = "Artist found but no genre information available",
+                                isLoadingMusic = false
+                            )
                         }
                     } else {
                         _uiState.value = _uiState.value.copy(
-                            musicErrorMessage = "Artist found but no genre information available",
+                            musicErrorMessage = "Artist not found",
                             isLoadingMusic = false
                         )
                     }
-                } else {
-                    _uiState.value = _uiState.value.copy(
-                        musicErrorMessage = "Artist not found",
-                        isLoadingMusic = false
-                    )
                 }
-            } catch (e: Exception) {
+            } catch (e: TimeoutCancellationException) {
                 _uiState.value = _uiState.value.copy(
-                    musicErrorMessage = "Network error: ${e.message}",
+                    musicErrorMessage = "Operation timed out. The music service may be slow. Please try again.",
+                    isLoadingMusic = false
+                )
+            } catch (e: Exception) {
+                val errorMessage = when {
+                    e.message?.contains("timeout", ignoreCase = true) == true -> 
+                        "Request timed out. Please check your connection and try again."
+                    e.message?.contains("connect", ignoreCase = true) == true -> 
+                        "Unable to connect to music service. Please try again later."
+                    else -> "Network error: ${e.message}"
+                }
+                _uiState.value = _uiState.value.copy(
+                    musicErrorMessage = errorMessage,
                     isLoadingMusic = false
                 )
             }
@@ -121,6 +155,13 @@ class MainViewModel @Inject constructor(
 
     fun clearMusicError() {
         _uiState.value = _uiState.value.copy(musicErrorMessage = null)
+    }
+
+    fun stopMusicLoading() {
+        _uiState.value = _uiState.value.copy(
+            isLoadingMusic = false,
+            musicErrorMessage = "Operation cancelled"
+        )
     }
 
     fun clearMusicResults() {
